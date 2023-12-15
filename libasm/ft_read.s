@@ -12,7 +12,7 @@ ft_read:
 syscall_error:
             neg     rax                         ; on recupere la valeur absolue du retour de l'appel systeme
             mov     rcx, rax                    ; on la stock dans un registre libre parce que l'appel suivant va ecraser rax
-            call    __errno_location wrt ..plt  ; on appelle __errno_location qui renvoie l'adresse de errno pour ce thread
+            call    __errno_location wrt ..plt  ; on appelle __errno_location qui renvoie l'adresse de errno pour ce thread, wrt ..plt permet au linker de "trouver" la fonction externe qu'on appelle
             mov     [rax], rcx                  ; on met a cette addresse memoire la valeur que nous a donne l'appel systeme
             mov     rax, -1                     ; on retourne -1 pour indiquer qu'une erreur a eu lieu
             ret
