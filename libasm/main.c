@@ -3,13 +3,14 @@
 #include <stdlib.h>
 
 // extern int ft_strlen(char *str);
-extern char *ft_strcpy(char *dest, const char *src);
+// extern char *ft_strcpy(char *dest, const char *src);
+extern int ft_strcmp(const char *s1, const char *s2);
 
 int main() {
-    char dest[4];
-    char *src = "toto";
+    char *str1 = "4124964";
+    char *str2 = "4124";
 
-    ft_strcpy(dest, src);
-    printf("%s\n", dest);
+    printf("%d\n", ft_strcmp(str1, str2));
+    printf("%d\n", strcmp(str1, str2));
     return (0);
 }
