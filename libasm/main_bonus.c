@@ -12,6 +12,7 @@ typedef struct s_list
 }   t_list;
 
 extern int	ft_list_size(t_list *begin_list);
+extern void	ft_list_push_front(t_list **begin_list, void *data);
 
 
 int main() {
@@ -28,6 +29,12 @@ int main() {
     third.next = NULL;
 
     printf("List size : %d\n", ft_list_size(&first));
+
+    t_list *head = &first;
+    ft_list_push_front(&head, &data);
+    printf("Added a new element first, data : %d\n", *(int *)head->data);
+    printf("New list size after push_front: %d\n", ft_list_size(head));
+
     
     return (0);
 }
