@@ -10,6 +10,10 @@ void    freeArray(char **array) {
 void    freeAll(t_var *var) {
     if (var->files != NULL)
         freeArray(var->files);
+    if (var->fd > 0) {
+        close(var->fd);
+        var->fd = -1;
+    }
 }
 
 void    fatalError(t_var *var, char *errorMessage) {

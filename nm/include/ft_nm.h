@@ -10,6 +10,9 @@
 # include <sys/stat.h>
 # include <stdlib.h>
 # include <stdio.h>
+# include <string.h>
+# include <errno.h>
+# include <stdbool.h>
 # include "../libft/libft.h"
 
 typedef struct s_var
@@ -17,6 +20,9 @@ typedef struct s_var
 	char			options[6];
 	char            **files;
     void            *map;
+    int             fd;
+    int             ret;
+    size_t          fileSize;
 }			t_var;
 
 void    parseArguments(t_var *var, int ac, char **av);

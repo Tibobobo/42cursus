@@ -7,10 +7,10 @@ int     hasOptionFormat(char *str) {
 }
 
 void    unknownOption(t_var *var, char unknown) {
-    write(2, "ft_nm: invalid option -- '", 27);
+    write(2, "ft_nm: invalid option -- '", 26);
     write(2, &unknown, 1);
-    write(2, "'\nUsage: ft_nm [option(s)] [file(s)]\n List symbols in [file(s)] (a.out by default).\n", 85);
-    write(2, "The options are:\n -a,      Display debugger-only symbols\n -g,      Display only external symbols\n -u,      Display only external symbols\n -r,      Reverse the sense of the sort\n -p,      Do not sort the symbols\n", 212);
+    write(2, "'\nUsage: ft_nm [option(s)] [file(s)]\n List symbols in [file(s)] (a.out by default).\n", 84);
+    write(2, " The options are:\n  -a,      Display debugger-only symbols\n  -g,      Display only external symbols\n  -u,      Display only undefined symbols\n  -r,      Reverse the sense of the sort\n  -p,      Do not sort the symbols\n", 218);
     freeAll(var);
     exit(1);
 }
