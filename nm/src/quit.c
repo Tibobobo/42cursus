@@ -14,6 +14,11 @@ void    freeAll(t_var *var) {
         close(var->fd);
         var->fd = -1;
     }
+    if (var->map != NULL && var->map != MAP_FAILED) {
+        munmap(var->map, var->fileSize);
+        var->map = NULL;
+        var->fileSize = 0;
+    }
 }
 
 void    fatalError(t_var *var, char *errorMessage) {

@@ -19,7 +19,7 @@ typedef struct s_var
 {
 	char			options[6];
 	char            **files;
-    void            *map;
+    char            *map;
     int             fd;
     int             ret;
     size_t          fileSize;

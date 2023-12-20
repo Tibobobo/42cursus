@@ -1,9 +1,9 @@
 #include "../include/ft_nm.h"
 
-int     hasOptionFormat(char *str) {
+bool     hasOptionFormat(char *str) {
     if (str != NULL && str[0] == '-' && str[1] != '\0')
-        return (1);
-    return (0);
+        return (true);
+    return (false);
 }
 
 void    unknownOption(t_var *var, char unknown) {
