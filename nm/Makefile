@@ -7,6 +7,9 @@ BUILD_DIR = ./build/
 SOURCES =	main.c \
 			parseArguments.c \
 			quit.c \
+			checkFileType.c \
+			parseFile.c \
+			utils.c \
 
 OBJECTS		= $(addprefix ${BUILD_DIR}, ${SOURCES:.c=.o})
 
@@ -14,7 +17,7 @@ DEPS := $(OBJECTS:.o=.d)
 
 CC = cc
 
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g3
 
 RM = rm -rf
 
