@@ -8,7 +8,8 @@ SOURCES =	main.c \
 			parseArguments.c \
 			quit.c \
 			checkFileType.c \
-			parseFile.c \
+			parseFile64.c \
+			parseFile32.c \
 			utils.c \
 
 OBJECTS		= $(addprefix ${BUILD_DIR}, ${SOURCES:.c=.o})

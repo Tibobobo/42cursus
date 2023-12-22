@@ -38,6 +38,10 @@ void    fileError(char *filePath, int type) {
         write(2, filePath, ft_strlen(filePath));
         write(2, ": file too short", 16);
     }
+    else if (type == 6) {
+        write(2, filePath, ft_strlen(filePath));
+        write(2, ": no symbols", 12);
+    }
     write(2, "\n", 1);
 }
 

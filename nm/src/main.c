@@ -2,7 +2,6 @@
 
 int main(int ac, char **av) {
     t_var var;
-    
     ft_bzero(var.options, 6);
     var.files = NULL;
     var.map = NULL;

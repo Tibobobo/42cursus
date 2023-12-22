@@ -1,71 +1,53 @@
 #include "../include/ft_nm.h"
 
-// #define MAX_BYTES 32
+void    hexaUltoa(unsigned long value, char *dest) {
+    int i = 0;
+    unsigned long remainder = 0;
 
-// void	changeEndian(void *ptr, size_t length)
-// {
-// 	uint8_t *bytes = (uint8_t *)ptr;
-// 	uint8_t tmp[MAX_BYTES] = { 0 };
+    while (value != 0) {
+        remainder = value % 16;
+        dest[i++] = (remainder < 10) ? (char)(remainder + '0') : (char)(remainder - 10 + 'a');
+        value = value / 16;
+    }
+    if (i == 0)
+        dest[i++] = '0';
+    while (i < 16)
+        dest[i++] = '0';
+    dest[i] = '\0';
+    int start = 0;
+    int end = 15;
+    char tmp = '0';
+    while (start < end) {
+        tmp = dest[start];
+        dest[start] = dest[end];
+        dest[end] = tmp;
+        start++;
+        end--;
+    }
+}
 
-// 	if (length > MAX_BYTES)
-// 		return;
-	
-// 	for (size_t i = 0; i < length; i++)
-// 		tmp[i] = bytes[length - 1 - i];
-// 	for (size_t i = 0; i < length; i++)
-// 		bytes[i] = tmp[i];
-// }
-
-// uint16_t	ft_uint16(uint16_t n, bool littleEndian) {
-// 	uint16_t res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(uint16_t));
-// 	return (res);
-// }
-
-// uint32_t	ft_uint32(uint32_t n, bool littleEndian) {
-// 	uint32_t res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(uint32_t));
-// 	return (res);
-// }
-
-// uint64_t	ft_uint64(uint64_t n, bool littleEndian) {
-// 	uint64_t res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(uint64_t));
-// 	return (res);
-// }
-
-// unsigned int	ft_unsignedInt(unsigned int n, bool littleEndian) {
-// 	unsigned int res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(unsigned int));
-// 	return (res);
-// }
-
-// long unsigned int	ft_longUnsignedInt(long unsigned int n, bool littleEndian) {
-// 	long unsigned int res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(long unsigned int));
-// 	return (res);
-// }
-
-// int	ft_int(int n, bool littleEndian) {
-// 	int res;
-
-// 	res = n;
-// 	if (!littleEndian)
-// 		changeEndian(&res, sizeof(int));
-// 	return (res);
-// }
+int compareSymNames(const char *first, const char *second) {
+    while (*first && *second) {
+        if (ft_isalnum(*first) && ft_isalnum(*second)) {
+            int diff = ft_tolower(*first) - ft_tolower(*second);
+            if (diff != 0) {
+                return diff;
+            }
+            first++;
+            second++;
+        }
+        else if (ft_isalnum(*first) && !ft_isalnum(*second))
+            second++;
+        else if (!ft_isalnum(*first) && ft_isalnum(*second))
+            first++;
+        else {
+            first++;
+            second++;
+        }
+    }
+    if (*first == '\0')
+        return -1;
+    else if (*second == '\0')
+        return 1;
+    return (0);
+}
