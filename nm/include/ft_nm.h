@@ -27,7 +27,8 @@ typedef struct s_var
 
 typedef struct s_sym
 {
-    char            value[17];
+    char            hexValue[17];
+    unsigned long   ulValue;
     char            type;
     char            name[512];
 }           t_sym;
@@ -40,6 +41,8 @@ bool                parse32bitFile(t_var *var, char *filePath);
 bool                parse64bitFile(t_var *var, char *filePath);
 void                fileError(char *filePath, int type);
 void                hexaUltoa(unsigned long value, char *dest);
-int                 compareSymNames(const char *first, const char *second);
+void                sortArray(size_t symbolCount, t_sym *symArray, char *options);
+void                printOutput(size_t symbolCount, t_sym *symArray, char *options);
+int                 compareSymNames(const char *first, const char *second, unsigned long firstValue, unsigned long secondValue);
 
 #endif

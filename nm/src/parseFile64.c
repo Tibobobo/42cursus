@@ -1,122 +1,61 @@
 #include "../include/ft_nm.h"
 
-char    getSymbolType(Elf64_Sym sym, Elf64_Shdr *shdr) {
-    char  c;
+char    getSymbolType(Elf64_Sym sym, Elf64_Shdr *shdr, Elf64_Ehdr *elf_header) {
+    {
+  char c = '?';
+  uint64_t flags;
+  uint64_t bind = ELF64_ST_BIND(sym.st_info);
+  uint64_t type = ELF64_ST_TYPE(sym.st_info);
+  uint16_t shndx = sym.st_shndx;
+  uint64_t shnum = elf_header->e_shnum;
 
-    if (ELF64_ST_BIND(sym.st_info) == STB_GNU_UNIQUE)
-        c = 'u';
-    else if (ELF64_ST_BIND(sym.st_info) == STB_WEAK)
+  if (bind == STB_GNU_UNIQUE)
+    c = 'u';
+  else if(type == STT_GNU_IFUNC)        // indirect GNU function
+    c = 'i';
+  else if (bind == STB_WEAK)            // weak = like global, but a global of the same name can override a weak
+  {
+    if(type == STT_OBJECT)              // weak object (variable for instance)
+      c = (shndx == SHN_UNDEF) ? 'v' : 'V';
+    else                                // weak symbol not specifically associated to a weak object
+      c = (shndx == SHN_UNDEF) ? 'w' : 'W';
+  }
+  else if (sym.st_shndx == SHN_UNDEF)    // undefined symbol
+    c = 'U';
+  else if (sym.st_shndx == SHN_ABS)     // absolute value, will not be modified at linking
+    c = 'A';
+  else if (sym.st_shndx == SHN_COMMON)
+    c = 'C';
+  else if (shndx < shnum) {
+    type = shdr[shndx].sh_type;
+    flags = shdr[shndx].sh_flags;
+
+    if (type == SHT_NOBITS)             // symbol in uninitialized data section (.bss)
+      c = 'B';
+    else if (!(flags & SHF_WRITE))
     {
-        c = 'W';
-        if (sym.st_shndx == SHN_UNDEF)
-            c = 'w';
+      if(flags & SHF_ALLOC && flags & SHF_EXECINSTR)
+        c = 'T';                        // symbol in text (code) section (.text)
+      else
+        c = 'R';                        // symbol in a read only data section
     }
-    else if (ELF64_ST_BIND(sym.st_info) == STB_WEAK && ELF64_ST_TYPE(sym.st_info) == STT_OBJECT)
-    {
-        c = 'V';
-        if (sym.st_shndx == SHN_UNDEF)
-            c = 'v';
-    }
-    // else if (ELF64_ST_TYPE(sym.st_info) == STT_NOTYPE && sym.st_shndx != SHN_UNDEF)
-    //     c = 'N';
-    // else if (ELF64_ST_TYPE(sym.st_info) == STT_SECTION && sym.st_shndx == SHN_UNDEF)
-    //     c = 'r';
-    // else if (ELF64_ST_TYPE(sym.st_info) == STT_TLS)
-    //     c = 't';
-    else if (sym.st_shndx == SHN_UNDEF)
-        c = 'U';
-    else if (sym.st_shndx == SHN_ABS)
-        c = 'A';
-    else if (sym.st_shndx == SHN_COMMON)
-        c = 'C';
-    else if (shdr[sym.st_shndx].sh_type == SHT_NOBITS
-        && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
-        c = 'B';
-    else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-        && shdr[sym.st_shndx].sh_flags == SHF_ALLOC)
-        c = 'R';
-    else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-        && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_WRITE))
-        c = 'D';
-    else if (shdr[sym.st_shndx].sh_type == SHT_PROGBITS
-        && shdr[sym.st_shndx].sh_flags == (SHF_ALLOC | SHF_EXECINSTR))
-        c = 'T';
-    else if (shdr[sym.st_shndx].sh_type == SHT_DYNAMIC)
-        c = 'D';
+    else if(flags & SHF_EXECINSTR)
+      c = 'T';                          // symbol in text (code) section (.text)
     else
-        c = '?';
-    if (ELF64_ST_BIND(sym.st_info) == STB_LOCAL && c != '?')
-        c += 32;
-    return c;
+      c = 'D';                          // symbol in initialized data section (.data)
+  }
+  if (bind == STB_LOCAL && c <= 'Z' && c != '?')
+    c += 32;                            // lowercase if symbol is local
+  return c;
+}
 }
 
-void    sortArray(size_t symbolCount, t_sym *symArray, char *options) {
-    t_sym tmp;
-    size_t i = 0;
-    size_t j = 0;
-
-    if (!ft_strchr(options, 'r')) {
-        while (i < symbolCount - 1) {
-            j = i + 1;
-            while (j < symbolCount) {
-                if (compareSymNames(symArray[i].name, symArray[j].name) > 0) {
-                    tmp = symArray[i];
-                    symArray[i] = symArray[j];
-                    symArray[j] = tmp;
-                }
-                j++;
-            }
-            i++;
-        }
-    }
-    else {
-        while (i < symbolCount - 1) {
-            j = i + 1;
-            while (j < symbolCount) {
-                if (compareSymNames(symArray[i].name, symArray[j].name) < 0) {
-                    tmp = symArray[i];
-                    symArray[i] = symArray[j];
-                    symArray[j] = tmp;
-                }
-                j++;
-            }
-            i++;
-        }
-    }
-}
-
-void    fillArray(size_t symbolCount, Elf64_Sym *symbolTable, t_sym *symArray, char *strtab, Elf64_Shdr *section_header) {
+void    fillArray(size_t symbolCount, Elf64_Sym *symbolTable, t_sym *symArray, char *strtab, Elf64_Shdr *section_header, Elf64_Ehdr *elf_header) {
     for (size_t i = 0; i < symbolCount; i++) {
-        hexaUltoa((unsigned long)symbolTable[i].st_value, symArray[i].value);
-        symArray[i].type = getSymbolType(symbolTable[i], section_header);
+        symArray[i].ulValue = (unsigned long)symbolTable[i].st_value;
+        hexaUltoa(symArray[i].ulValue, symArray[i].hexValue);
+        symArray[i].type = getSymbolType(symbolTable[i], section_header, elf_header);
         ft_strlcpy(symArray[i].name, strtab + symbolTable[i].st_name, 512);
-    }
-}
-
-char *setTypesToPrint(char *options) {
-    if (ft_strchr(options, 'u'))
-        return ("Uw");
-    else if (ft_strchr(options, 'g'))
-        return ("UwWACBRDT");
-    else if (ft_strchr(options, 'a'))
-        return ("UWACBRDTNuwactrbd");
-    else
-        return ("UWACBRDTurtwcbd");
-}
-
-void    printOutput(size_t symbolCount, t_sym *symArray, char *options) {
-    char *toPrint = setTypesToPrint(options);
-    for (size_t i = 0; i < symbolCount; i++) {
-        if (!(symArray[i].name[0] == '\0' && symArray[i].type != 'a')
-            && ft_strchr(toPrint, symArray[i].type)) {
-            (symArray[i].type == 'U' || symArray[i].type == 'w') ?
-            write(1, "                ", 16) : write(1, symArray[i].value, 16);
-            write(1, " ", 1);
-            write(1, &symArray[i].type, 1);
-            write(1, " ", 1);
-            write(1, symArray[i].name, ft_strlen(symArray[i].name));
-            write(1, "\n", 1);
-        }
     }
 }
 
@@ -149,7 +88,7 @@ bool    parse64bitFile(t_var *var, char *filePath) {
                 return (fileError(filePath, 5), false);
             char *strtab = var->map + strtab_section->sh_offset;
 
-            fillArray(symbolCount, symbolTable, symArray, strtab, section_headers);
+            fillArray(symbolCount, symbolTable, symArray, strtab, section_headers, elf_header);
             if (!ft_strchr(var->options, 'p'))
                 sortArray(symbolCount, symArray, var->options);
             printOutput(symbolCount, symArray, var->options);
