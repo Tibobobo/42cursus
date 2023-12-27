@@ -8,6 +8,7 @@ int main(int ac, char **av) {
     var.ret = 0;
     var.fd = -1;
     var.fileSize = 0;
+    var.is32bit = false;
     parseArguments(&var, ac, av);
     for (int i = 0; var.files[i] != NULL; i++) {
         handleFile(&var, var.files[i]);

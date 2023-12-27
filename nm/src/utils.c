@@ -46,13 +46,19 @@ void    sortArray(size_t symbolCount, t_sym *symArray, char *options) {
     }
 }
 
-void    printOutput(size_t symbolCount, t_sym *symArray, char *options) {
+void    printOutput(size_t symbolCount, t_sym *symArray, char *options, bool is32bit) {
     char *toPrint = setTypesToPrint(options);
     for (size_t i = 0; i < symbolCount; i++) {
         if (!(symArray[i].name[0] == '\0' && symArray[i].type != 'a')
             && ft_strchr(toPrint, symArray[i].type)) {
-            (symArray[i].type == 'U' || symArray[i].type == 'w' || symArray[i].type == 'W') ?
-            write(1, "                ", 16) : write(1, symArray[i].hexValue, 16);
+            if (is32bit) {
+                (symArray[i].type == 'U' || symArray[i].type == 'w') ?
+                write(1, "        ", 8) : write(1, symArray[i].hexValue + 8, 8);
+            }
+            else {
+                (symArray[i].type == 'U' || symArray[i].type == 'w') ?
+                write(1, "                ", 16) : write(1, symArray[i].hexValue, 16);
+            }
             write(1, " ", 1);
             write(1, &symArray[i].type, 1);
             write(1, " ", 1);
@@ -114,4 +120,15 @@ int compareSymNames(const char *first, const char *second, unsigned long firstVa
     else if (firstValue < secondValue)
         return -1;
     return 1;
+}
+
+bool    isNullTerminated(char *start, char *end) {
+    while (start < end)
+	{
+		if (!*start)
+			return true;
+		start++;
+	}
+
+	return false;
 }

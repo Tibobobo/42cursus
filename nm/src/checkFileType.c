@@ -42,6 +42,10 @@ void    fileError(char *filePath, int type) {
         write(2, filePath, ft_strlen(filePath));
         write(2, ": no symbols", 12);
     }
+    else if (type == 7) {
+        write(2, filePath, ft_strlen(filePath));
+        write(2, ": strtab section contains non null terminated strings", 53);
+    }
     write(2, "\n", 1);
 }
 
@@ -56,7 +60,7 @@ bool isValidFile(t_var *var, char *filePath) {
         fileError(filePath, 1);
     else if (!S_ISREG(file.st_mode)) 
         fileError(filePath, 2);
-    else if (var->fileSize > 0)
+    else if (var->fileSize >= 6)
         isValid = true;
     return (isValid);
 }
@@ -66,14 +70,16 @@ bool    parseMap(t_var *var, char *filePath) {
 
     if (var->map[0] == ELFMAG0 && var->map[1] == ELFMAG1
         && var->map[2] == ELFMAG2 && var->map[3] == ELFMAG3) {
-        if (var->map[5] == ELFDATA2MSB)
+        if (var->map[5] == ELFDATA2MSB || var->map[5] == ELFDATANONE)
             return(fileError(filePath, 3), false);
-        else if (var->map[5] == ELFDATANONE)
-            return (fileError(filePath, 3), false);
-        if (var->map[4] == ELFCLASS32)
+        if (var->map[4] == ELFCLASS32) {
+            var->is32bit = true;
             fileOK = parse32bitFile(var, filePath);
-        else if (var->map[4] == ELFCLASS64)
+        }
+        else if (var->map[4] == ELFCLASS64) {
+            var->is32bit = false;
             fileOK = parse64bitFile(var, filePath);
+        }
         else
             return (fileError(filePath, 3), false);
     }

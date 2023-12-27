@@ -1,6 +1,6 @@
 #include "../include/ft_nm.h"
 
-char    getSymbolType(Elf64_Sym sym, Elf64_Shdr *shdr, Elf64_Ehdr *elf_header) {
+char    getSymbolType64(Elf64_Sym sym, Elf64_Shdr *shdr, Elf64_Ehdr *elf_header) {
     {
   char c = '?';
   uint64_t flags;
@@ -50,18 +50,24 @@ char    getSymbolType(Elf64_Sym sym, Elf64_Shdr *shdr, Elf64_Ehdr *elf_header) {
 }
 }
 
-void    fillArray(size_t symbolCount, Elf64_Sym *symbolTable, t_sym *symArray, char *strtab, Elf64_Shdr *section_header, Elf64_Ehdr *elf_header) {
+bool    fillArray64(size_t symbolCount, Elf64_Sym *symbolTable, t_sym *symArray, char *strtab, Elf64_Shdr *section_headers, Elf64_Shdr *section_header, Elf64_Ehdr *elf_header) {
     for (size_t i = 0; i < symbolCount; i++) {
         symArray[i].ulValue = (unsigned long)symbolTable[i].st_value;
         hexaUltoa(symArray[i].ulValue, symArray[i].hexValue);
-        symArray[i].type = getSymbolType(symbolTable[i], section_header, elf_header);
-        ft_strlcpy(symArray[i].name, strtab + symbolTable[i].st_name, 512);
+        symArray[i].type = getSymbolType64(symbolTable[i], section_headers, elf_header);
+        if (isNullTerminated(strtab + (uint32_t)symbolTable[i].st_name, strtab + (uint64_t)section_headers[section_header->sh_link].sh_size))
+            ft_strlcpy(symArray[i].name, strtab + (uint32_t)symbolTable[i].st_name, 512);
+        else
+            return (false);
     }
+    return (true);
 }
 
 bool    parse64bitFile(t_var *var, char *filePath) {
+    if (sizeof(Elf64_Ehdr) > var->fileSize)
+        return (fileError(filePath, 5), false);
     Elf64_Ehdr *elf_header = (Elf64_Ehdr *)var->map;
-    if ((size_t)elf_header->e_shoff > var->fileSize)
+    if ((size_t)elf_header->e_shoff + sizeof(Elf64_Shdr) > var->fileSize)
         return (fileError(filePath, 5), false);
     Elf64_Shdr *section_headers = (Elf64_Shdr *)(var->map + elf_header->e_shoff);
     size_t symbolCount = 0;
@@ -73,25 +79,23 @@ bool    parse64bitFile(t_var *var, char *filePath) {
     }
     for (int i = 0; i < elf_header->e_shnum; i++) {
         Elf64_Shdr *section_header = &section_headers[i];
-
         if (section_header->sh_type == SHT_SYMTAB) {
-            if ((size_t)section_header->sh_offset > var->fileSize)
+            if ((size_t)section_header->sh_offset + sizeof(Elf64_Sym) > var->fileSize)
                 return (fileError(filePath, 5), false);
             Elf64_Sym *symbolTable = (Elf64_Sym *)(var->map + section_header->sh_offset);
-            symbolCount = section_header->sh_size / sizeof(Elf64_Sym);
+            symbolCount = section_header->sh_size / section_header->sh_entsize;
             t_sym *symArray = malloc(sizeof(t_sym) * (symbolCount));
             if (symArray == NULL)
-                fatalError(var, "ft_nm: Malloc Error\n");
-    
+                fatalError(var, "ft_nm: Malloc Error\n"); 
             Elf64_Shdr *strtab_section = &section_headers[section_header->sh_link];
             if ((size_t)strtab_section->sh_offset > var->fileSize)
-                return (fileError(filePath, 5), false);
+                return (fileError(filePath, 5), free(symArray), false);
             char *strtab = var->map + strtab_section->sh_offset;
-
-            fillArray(symbolCount, symbolTable, symArray, strtab, section_headers, elf_header);
+            if (!fillArray64(symbolCount, symbolTable, symArray, strtab, section_headers, section_header, elf_header))
+                return (fileError(filePath, 7), free(symArray), false);
             if (!ft_strchr(var->options, 'p'))
                 sortArray(symbolCount, symArray, var->options);
-            printOutput(symbolCount, symArray, var->options);
+            printOutput(symbolCount, symArray, var->options, var->is32bit);
             free(symArray);
         }
     }
