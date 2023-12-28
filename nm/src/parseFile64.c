@@ -20,11 +20,11 @@ char    getSymbolType64(Elf64_Sym sym, Elf64_Shdr *shdr, Elf64_Ehdr *elf_header)
     else                                // weak symbol not specifically associated to a weak object
       c = (shndx == SHN_UNDEF) ? 'w' : 'W';
   }
-  else if (sym.st_shndx == SHN_UNDEF)    // undefined symbol
+  else if (shndx == SHN_UNDEF)          // undefined symbol
     c = 'U';
-  else if (sym.st_shndx == SHN_ABS)     // absolute value, will not be modified at linking
+  else if (shndx == SHN_ABS)            // absolute value, will not be modified at linking
     c = 'A';
-  else if (sym.st_shndx == SHN_COMMON)
+  else if (shndx == SHN_COMMON)         // Common symbol, for example uninitialized global variable (can be initialized in another file)
     c = 'C';
   else if (shndx < shnum) {
     type = shdr[shndx].sh_type;

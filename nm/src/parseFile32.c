@@ -9,7 +9,7 @@ char    getSymbolType32(Elf32_Sym sym, Elf32_Shdr *shdr, Elf32_Ehdr *elf_header)
   uint16_t shndx = sym.st_shndx;
   uint32_t shnum = elf_header->e_shnum;
 
-  if (bind == STB_GNU_UNIQUE)
+  if (bind == STB_GNU_UNIQUE)           // GNU extension for unique global symbol
     c = 'u';
   else if(type == STT_GNU_IFUNC)        // indirect GNU function
     c = 'i';
@@ -20,11 +20,11 @@ char    getSymbolType32(Elf32_Sym sym, Elf32_Shdr *shdr, Elf32_Ehdr *elf_header)
     else                                // weak symbol not specifically associated to a weak object
       c = (shndx == SHN_UNDEF) ? 'w' : 'W';
   }
-  else if (sym.st_shndx == SHN_UNDEF)    // undefined symbol
+  else if (shndx == SHN_UNDEF)          // undefined symbol
     c = 'U';
-  else if (sym.st_shndx == SHN_ABS)     // absolute value, will not be modified at linking
+  else if (shndx == SHN_ABS)            // absolute value, will not be modified at linking
     c = 'A';
-  else if (sym.st_shndx == SHN_COMMON)
+  else if (shndx == SHN_COMMON)
     c = 'C';
   else if (shndx < shnum) {
     type = shdr[shndx].sh_type;

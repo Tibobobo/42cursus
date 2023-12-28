@@ -95,6 +95,9 @@ void    hexaUltoa(unsigned long value, char *dest) {
 }
 
 int compareSymNames(const char *first, const char *second, unsigned long firstValue, unsigned long secondValue) {
+    const char    *copy1 = first;
+    const char    *copy2 = second;
+
     while (*first && *second) {
         if (ft_isalnum(*first) && ft_isalnum(*second)) {
             int diff = ft_tolower(*first) - ft_tolower(*second);
@@ -117,6 +120,10 @@ int compareSymNames(const char *first, const char *second, unsigned long firstVa
         return -1;
     else if (*second == '\0' && *first != '\0')
         return 1;
+    else if (ft_isalnum(*copy1) && !ft_isalnum(*copy2))
+        return 1;
+    else if (!ft_isalnum(*copy1) && ft_isalnum(*copy2))
+        return -1;
     else if (firstValue < secondValue)
         return -1;
     return 1;
